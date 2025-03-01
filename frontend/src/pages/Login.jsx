@@ -96,12 +96,12 @@ const Login = () => {
         <button type="submit">Login</button>
       </form>
 
-      {/* <p>
+      <p>
           Don't have an account?{" "}
           <span className="link" onClick={() => navigate("/register")}>
             Register here
           </span>
-        </p> */}
+        </p>
     </div>
   );
 };

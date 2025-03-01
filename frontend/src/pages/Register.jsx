@@ -1,3 +1,4 @@
+import React from "react";
 import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +24,7 @@ const Register = () => {
   };
 
   return (
+    <div className="auth-container">
     <form onSubmit={handleSubmit}>
       <input type="text" placeholder="Username" required autoComplete="username"
         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -30,7 +32,7 @@ const Register = () => {
       <input type="email" placeholder="Email" required autoComplete="email"
         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
       />
-      <input type="password" placeholder="Password" required autoComplete="new-password"
+      <input type="password" placeholder="Password" required autoComplete="current-password"
         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
       />
       <select onChange={(e) => setFormData({ ...formData, role: e.target.value })}>
@@ -42,6 +44,14 @@ const Register = () => {
       {error && <p style={{ color: "red" }}>{error}</p>}
       {success && <p style={{ color: "green" }}>{success}</p>}
     </form>
+    <p>
+          Already have an account?{" "}
+          <span className="link" onClick={() => navigate("/login")}>
+            Login here
+          </span>
+        </p>
+      </div>
+   
   );
 };
 

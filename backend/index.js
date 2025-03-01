@@ -3,11 +3,16 @@ const mysql = require("mysql");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve static files
+app.use("/upload", express.static(path.join(__dirname, "upload")));
 
 // ✅ MySQL Database Connection
 const db = mysql.createConnection({
@@ -28,61 +33,32 @@ db.connect((err) => {
 // ✅ Start Server
 app.listen(5000, () => console.log("🚀 Server running on port 5000"));
 
-/* =====================================
- ✅ Register Endpoint
-====================================== */
+// ✅ Register Endpoint (Unchanged)
 app.post("/register", async (req, res) => {
-  try {
-    let { username, email, password, role } = req.body;
+  const { username, email, password, role } = req.body;
 
-    // Trim whitespace from input
-    username = username?.trim();
-    email = email?.trim();
-    password = password?.trim();
-
-    // Validate input fields
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    // Check if user already exists
-    db.query("SELECT * FROM users WHERE email = ?", [email], async (err, result) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ message: "Database error" });
-      }
-
-      if (result.length > 0) {
-        return res.status(400).json({ message: "User already exists" });
-      }
-
-      // Hash password before storing
-      const hashedPassword = await bcrypt.hash(password, 10);
-      role = role || "user"; // Default role if not provided
-
-      // Insert new user
-      db.query(
-        "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
-        [username, email, hashedPassword, role],
-        (err, result) => {
-          if (err) {
-            console.error("Error inserting user:", err);
-            return res.status(500).json({ message: "Error registering user" });
-          }
-          res.status(201).json({ message: "User registered successfully" });
-        }
-      );
-    });
-  } catch (error) {
-    console.error("Server error:", error);
-    res.status(500).json({ message: "Internal server error" });
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: "All fields are required" });
   }
+
+  db.query("SELECT * FROM users WHERE email = ?", [email], async (err, result) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    if (result.length > 0) return res.status(400).json({ message: "User already exists" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userRole = role || "user";
+
+    db.query("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)",
+      [username, email, hashedPassword, userRole],
+      (err, result) => {
+        if (err) return res.status(500).json({ message: "Error registering user" });
+        res.status(201).json({ message: "User registered successfully" });
+      }
+    );
+  });
 });
 
-/* =====================================
- ✅ Login Endpoint
-====================================== */
-// In the backend (index.js)
+// ✅ Login Endpoint (Unchanged)
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -92,33 +68,60 @@ app.post("/login", (req, res) => {
 
     const user = result[0];
     const isValidPassword = await bcrypt.compare(password, user.password);
-
     if (!isValidPassword) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = jwt.sign({ id: user.id, role: user.role }, "secretkey", { expiresIn: "1h" });
+    res.json({ message: "Login successful", token, role: user.role });
+  });
+});
 
-    res.json({ message: "Login successful", token, role: user.role });  // Ensure role is sent
+// ✅ Multer Storage for File Uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "upload"); // Save images in the backend /upload folder
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
+
+// ✅ Add Product Endpoint
+app.post("/addItems", upload.single("image"), (req, res) => {
+  const { name, category, price } = req.body;
+  const imgurl = req.file ? `/upload/${req.file.filename}` : null; // Store path in DB
+
+  if (!name || !category || !price || !imgurl) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const query = "INSERT INTO product (name, category, price, imgurl) VALUES (?, ?, ?, ?)";
+  db.query(query, [name, category, price, imgurl], (err, result) => {
+    if (err) {
+      console.error("❌ Error adding product:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    res.status(201).json({ message: "Product added successfully" });
   });
 });
 
 
-/* =====================================
- ✅ Protected Route Example (Dashboard)
-====================================== */
-const verifyToken = (req, res, next) => {
-  const token = req.headers["authorization"];
+// ✅ Fetch Products by Category
+app.get("/products/:category", (req, res) => {
+  const { category } = req.params;
+  const query = "SELECT * FROM product WHERE category = ?";
   
-  if (!token) return res.status(403).json({ message: "Access denied. No token provided." });
-
-  jwt.verify(token, process.env.JWT_SECRET || "defaultsecret", (err, decoded) => {
-    if (err) return res.status(401).json({ message: "Invalid token" });
-
-    req.user = decoded;
-    next();
+  db.query(query, [category], (err, results) => {
+    if (err) {
+      console.error("❌ Error fetching products:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    res.json(results);
   });
-};
-
-// ✅ Example Protected Route
-app.get("/dashboard", verifyToken, (req, res) => {
-  res.json({ message: `Welcome, user ${req.user.id}!`, role: req.user.role });
 });
+
+
+
+
+

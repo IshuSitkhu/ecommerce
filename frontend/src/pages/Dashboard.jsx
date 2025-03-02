@@ -6,11 +6,11 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
+    const sto#222User = localStorage.getItem("user");
+    if (!sto#222User) {
       navigate("/login");
     } else {
-      setUser(JSON.parse(storedUser));
+      setUser(JSON.parse(sto#222User));
     }
   }, [navigate]);
 

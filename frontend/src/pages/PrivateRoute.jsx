@@ -18,7 +18,7 @@
 //   const token = localStorage.getItem("token");
 //   const role = localStorage.getItem("role");
 
-//   // If no token or role doesn't match, redirect to login page
+//   // If no token or role doesn't match, #222irect to login page
 //   if (!token || role !== allowedRole) {
 //     return <Navigate to="/login" />;
 //   }

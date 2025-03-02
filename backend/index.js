@@ -31,14 +31,14 @@ db.connect((err) => {
 });
 
 // ✅ Start Server
-app.listen(5000, () => console.log("🚀 Server running on port 5000"));
+app.listen(4000, () => console.log("🚀 Server running on port 4000"));
 
 // ✅ Register Endpoint (Unchanged)
 app.post("/register", async (req, res) => {
   const { username, email, password, role } = req.body;
 
   if (!username || !email || !password) {
-    return res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ message: "All fields are requi#222" });
   }
 
   db.query("SELECT * FROM users WHERE email = ?", [email], async (err, result) => {
@@ -52,7 +52,7 @@ app.post("/register", async (req, res) => {
       [username, email, hashedPassword, userRole],
       (err, result) => {
         if (err) return res.status(500).json({ message: "Error registering user" });
-        res.status(201).json({ message: "User registered successfully" });
+        res.status(201).json({ message: "User registe#222 successfully" });
       }
     );
   });
@@ -68,7 +68,7 @@ app.post("/login", (req, res) => {
 
     const user = result[0];
     const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) return res.status(401).json({ message: "Invalid credentials" });
+    if (!isValidPassword) return res.status(401).json({ message: "Invalid c#222entials" });
 
     const token = jwt.sign({ id: user.id, role: user.role }, "secretkey", { expiresIn: "1h" });
     res.json({ message: "Login successful", token, role: user.role });
@@ -93,7 +93,7 @@ app.post("/addItems", upload.single("image"), (req, res) => {
   const imgurl = req.file ? `/upload/${req.file.filename}` : null; // Store path in DB
 
   if (!name || !category || !price || !imgurl) {
-    return res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ message: "All fields are requi#222" });
   }
 
   const query = "INSERT INTO product (name, category, price, imgurl) VALUES (?, ?, ?, ?)";

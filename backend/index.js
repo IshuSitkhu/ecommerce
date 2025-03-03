@@ -122,6 +122,23 @@ app.get("/products/:category", (req, res) => {
 });
 
 
+///////
+/// Add the POST Route for Adding Items to Cart
+app.post("/cart", (req, res) => {
+  const { product_id, user_id, quantity } = req.body;
+  
+  if (!product_id || !user_id || !quantity) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  const query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
+  db.query(query, [user_id, product_id, quantity], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json({ message: "Added to cart", cart_id: result.insertId });
+  });
+});
+
+
 
 
 

@@ -11,6 +11,9 @@ import Kids from "./pages/Kids";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import AddItems from "./pages/AddItems";
+import Cart from "./pages/Cart"; // Import the Cart component
+import UserNavbar from "./components/UserNavbar"; // Import Navbar
+import UserHome from "./components/UserHome";
 
 function App() {
   const navigate = useNavigate();
@@ -76,6 +79,10 @@ function App() {
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/additems" element={<AddItems />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/user-home" element={<UserHome/>} />
+      
+
 
     </Routes>
   );

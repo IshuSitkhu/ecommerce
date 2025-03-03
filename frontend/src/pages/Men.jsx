@@ -1,84 +1,77 @@
-// import { useEffect, useState } from "react";
-// import axios from "axios";
-// import UserNavbar from "../components/UserNavbar";
-// import Footer from "../components/Footer";
-// import React from "react";
-
-// const Men = () => {
-//   const [products, setProducts] = useState([]);
-
-//   useEffect(() => {
-//     axios
-//       .get("http://localhost:4000/products/Men") // Fetch products for Men
-//       .then((response) => {
-//         setProducts(response.data);
-//       })
-//       .catch((error) => {
-//         console.error("Error fetching products:", error);
-//       });
-//   }, []);
-
-//   return (
-//     <div>
-//       <UserNavbar />
-//       <div className="container mx-auto py-16 my-8">
-//         <h3 className="text-3xl font-semibold text-center mb-8">Men's Collection</h3>
-//         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-//           {products.map((product) => (
-//             <div key={product.id} className="bg-white p-4 shadow-lg rounded-lg">
-//               <img
-//                 src={`http://localhost:4000${product.imgurl}`} // Ensure correct image path
-//                 alt={product.name}
-//                 className="w-full h-64 object-cover rounded-md"
-//               />
-//               <h4 className="text-xl font-semibold mt-4">{product.name}</h4>
-//               <p className="text-gray-600">${product.price}</p>
-//               <button className="mt-4 bg-black text-white px-4 py-2 rounded hover:bg-gray-700">
-//                 Add to Cart
-//               </button>
-//             </div>
-//           ))}
-//         </div>
-//       </div>
-//       <Footer />
-//     </div>
-//   );
-// };
-
-// export default Men;
-
-import { useEffect, useState } from "react";
-import axios from "axios";
-import UserNavbar from "../components/UserNavbar";
-import Footer from "../components/Footer";
+import { useEffect, useState } from "react"; 
+import axios from "axios"; 
+import UserNavbar from "../components/UserNavbar"; 
+import Footer from "../components/Footer"; 
 import React from "react";
 
 const Men = () => {
   const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     // Fetch products for Men category
     axios
-      .get("http://localhost:4000/products/Men") // Make sure to update the URL to match your API endpoint
+      .get("http://localhost:4000/products/Men")
       .then((response) => {
         setProducts(response.data); // Set the products fetched from the backend
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
       });
+
+    // Load cart from localStorage on page load (optional)
+    const storedCart = JSON.parse(localStorage.getItem("cart"));
+    if (storedCart) {
+      setCart(storedCart);
+    }
   }, []);
+
+  // const addToCart = (product) => {
+  //   const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+  //   existingCart.push(product);
+  //   localStorage.setItem("cart", JSON.stringify(existingCart)); // Save updated cart in localStorage
+  
+  //   // Optionally update the cart count in Navbar
+  //   alert(`${product.name} added to cart!`);
+  // };
+  
+  const addToCart = (product) => {
+    const existingCart = [...cart]; // Copy current cart state
+    const existingProduct = existingCart.find((item) => item.id === product.id);
+  
+    if (existingProduct) {
+      existingProduct.quantity += 1;
+    } else {
+      existingCart.push({ ...product, quantity: 1 });
+    }
+  
+    // Update state and localStorage
+    setCart(existingCart);
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+  
+    alert(`${product.name} added to cart!`);
+  };
+  
+  
 
   return (
     <div>
       <UserNavbar />
       <div className="container mx-auto py-16 my-8">
-        <h3 style={{ fontSize: "2rem", fontWeight: "700", textAlign: "center", marginBottom: "24px" }}>
+        <h3
+          style={{
+            fontSize: "2rem",
+            fontWeight: "700",
+            textAlign: "center",
+            marginBottom: "24px",
+          }}
+        >
           Men's Collection
         </h3>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", // Auto fill with responsive columns
+            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
             gap: "32px",
           }}
         >
@@ -93,7 +86,7 @@ const Men = () => {
               }}
             >
               <img
-                src={`http://localhost:4000${product.imgurl}`} // Assuming `product.img` has the image URL from the backend
+                src={`http://localhost:4000${product.imgurl}`}
                 alt={product.name}
                 style={{
                   width: "100%",
@@ -109,7 +102,7 @@ const Men = () => {
                   marginTop: "16px",
                 }}
               >
-                {product.name} {/* Dynamic product name */}
+                {product.name}
               </h4>
               <p
                 style={{
@@ -118,23 +111,25 @@ const Men = () => {
                   marginTop: "8px",
                 }}
               >
-                {product.price} {/* Dynamic product price */}
+                {product.price}
               </p>
               <button
-                style={{
-                  marginTop: "16px",
-                  backgroundColor: "black",
-                  color: "white",
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseOver={(e) => (e.target.style.backgroundColor = "#4a4a4a")}
-                onMouseOut={(e) => (e.target.style.backgroundColor = "black")}
-              >
-                Add to Cart
-              </button>
+  style={{
+    marginTop: "16px",
+    backgroundColor: "black",
+    color: "white",
+    padding: "8px 16px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    transition: "background-color 0.3s ease",
+  }}
+  onMouseOver={(e) => (e.target.style.backgroundColor = "#4a4a4a")}
+  onMouseOut={(e) => (e.target.style.backgroundColor = "black")}
+  onClick={() => addToCart(product)} // Add to cart onClick
+>
+  Add to Cart
+</button>
+
             </div>
           ))}
         </div>

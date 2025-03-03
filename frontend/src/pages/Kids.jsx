@@ -138,7 +138,7 @@ const Kids = () => {
       <UserNavbar />
       <div className="container mx-auto py-16 my-8">
         <h3 style={{ fontSize: "2rem", fontWeight: "700", textAlign: "center", marginBottom: "24px" }}>
-          Women's Collection
+          kid's Collection
         </h3>
         <div
           style={{

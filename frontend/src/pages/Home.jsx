@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Home = () => {
   return <>
-      <h1>Welcome to Home Page</h1>;
+      <h1>Welcome to E-commerces Website</h1>;
       <nav
       style={{
         display: "flex",
@@ -17,6 +17,10 @@ const Home = () => {
       <div>
         <Link
           to="/login"
+          onClick={() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("role");
+          }}
           style={{
             color: "white",
             textDecoration: "none",

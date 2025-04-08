@@ -11,26 +11,54 @@ const Login = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
+  
+  //   try {
+  //     const response = await axios.post("http://localhost:4000/login", { email, password });
+  
+  //     localStorage.setItem("token", response.data.token);
+  //     localStorage.setItem("role", response.data.role);  
+  //     localStorage.setItem("username", response.data.username); // from API
+
+  
+  //     if (response.data.role === "admin") {
+  //       navigate("/admin-dashboard");  
+  //     } else {
+  //       navigate("/user-dashboard");  
+  //     }
+  //   } catch (err) {
+  //     setError(err.response?.data?.message || "An error occurred");
+  //   }
+  // };
+  
   const handleLogin = async (e) => {
     e.preventDefault();
   
     try {
-      const response = await axios.post("http://localhost:4000/login", { email, password });
+      const response = await axios.post("http://localhost:4000/login", {
+        email,
+        password
+      });
   
+      // ✅ Save data to localStorage
+      localStorage.setItem("user_id", response.data.userId); // this is correct
       localStorage.setItem("token", response.data.token);
-      localStorage.setItem("role", response.data.role);  
+      localStorage.setItem("role", response.data.role);
+      localStorage.setItem("username", response.data.username);
   
+      // ✅ Navigate based on role
       if (response.data.role === "admin") {
-        navigate("/admin-dashboard");  
+        navigate("/admin-dashboard");
       } else {
-        navigate("/user-dashboard");  
+        navigate("/user-dashboard");
       }
     } catch (err) {
       setError(err.response?.data?.message || "An error occurred");
     }
   };
   
-
+  
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h1>Login</h1>

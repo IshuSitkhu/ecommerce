@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 const UserNavbar = () => {
   const navigate = useNavigate();
+  const [cartItemCount, setCartItemCount] = useState(0);
+  const [username, setUsername] = useState("");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -10,12 +12,18 @@ const UserNavbar = () => {
     navigate("/login");
   };
 
-  const [cartItemCount, setCartItemCount] = useState(0);
 
   useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCartItemCount(cart.length);
+    const userId = localStorage.getItem("user_id");
+    if (userId) {
+      const cart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+      setCartItemCount(cart.length);
+    }
+  
+    const storedUsername = localStorage.getItem("username");
+    setUsername(storedUsername || "Guest");
   }, []);
+  
   
 
   return (
@@ -29,11 +37,20 @@ const UserNavbar = () => {
           <Link to="/about" style={linkStyle}>About</Link>
           <Link to="/contact" style={linkStyle}>Contact</Link>
         </div>
-        <Link to="/cart">
-          <div className="cart-icon" style={cartIconStyle}>
-            🛒 <span>{cartItemCount}</span>
-          </div>
-        </Link>
+      
+         {/* Profile Icon */}
+      <div style={profileContainer}>
+        <span role="img" aria-label="user" style={profileIcon}>👤</span>
+        <div style={tooltip}>{username}</div>
+      </div>
+
+      {/* Cart Icon */}
+      <Link to="/cart">
+        <div style={cartIconStyle}>
+          🛒 <span>{cartItemCount}</span>
+        </div>
+      </Link>
+
         <button
           onClick={handleLogout}
           style={buttonStyle}
@@ -88,5 +105,40 @@ const cartIconStyle = {
   fontSize: "1.2rem",
   fontWeight: "600",
 };
+
+// Extra styles for profile
+const profileContainer = {
+  position: "relative",
+  marginRight: "20px",
+  cursor: "pointer",
+};
+
+const profileIcon = {
+  fontSize: "1.5rem",
+  color: "white",
+};
+
+const tooltip = {
+  position: "absolute",
+  bottom: "-25px",
+  left: "-10px",
+  backgroundColor: "#333",
+  color: "#fff",
+  padding: "5px 10px",
+  borderRadius: "4px",
+  fontSize: "0.85rem",
+  visibility: "hidden",
+  opacity: 0,
+  transition: "opacity 0.3s ease",
+};
+
+const style = document.createElement('style');
+style.textContent = `
+  div[style*="position: relative"]:hover div {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+`;
+document.head.append(style);
 
 export default UserNavbar;

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react"; 
-import axios from "axios"; 
-import UserNavbar from "../components/UserNavbar"; 
-import Footer from "../components/Footer"; 
+import { useEffect, useState } from "react";
+import axios from "axios";
+import UserNavbar from "../components/UserNavbar";
+import Footer from "../components/Footer";
 import React from "react";
+
 
 const Men = () => {
   const [products, setProducts] = useState([]);
@@ -26,37 +27,71 @@ const Men = () => {
     }
   }, []);
 
-  // const addToCart = (product) => {
-  //   const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-  //   existingCart.push(product);
-  //   localStorage.setItem("cart", JSON.stringify(existingCart)); // Save updated cart in localStorage
+  // const addToCart = async (product) => {
+  //   const userId = localStorage.getItem("user_id"); // Make sure this exists
+    
+    
+  //   if (!userId) {
+  //     alert("Please log in to add items to the cart");
+  //     return;
+  //   }
   
-  //   // Optionally update the cart count in Navbar
-  //   alert(`${product.name} added to cart!`);
+  //   try {
+  //     const response = await axios.post("http://localhost:4000/cart", {
+  //       userId: userId,
+  //       productId: product.id,
+  //       name: product.name,
+  //       price: product.price,
+  //       image: product.imgurl,
+  //     });
+  //     console.log(response.data);
+  
+  //     // Optional local cart update
+  //     const updatedCart = [...cart, product];
+  //     setCart(updatedCart);
+  //     localStorage.setItem("cart", JSON.stringify(updatedCart));
+  //   } catch (error) {
+  //     console.error("Error adding to cart:", error.response || error);
+  //   }
   // };
+
+
+  const addToCart = async (product) => {
+    const userId = localStorage.getItem("user_id");
   
-  const addToCart = (product) => {
-    const existingCart = [...cart]; // Copy current cart state
-    const existingProduct = existingCart.find((item) => item.id === product.id);
-  
-    if (existingProduct) {
-      existingProduct.quantity += 1;
-    } else {
-      existingCart.push({ ...product, quantity: 1 });
+    if (!userId) {
+      alert("Please log in to add items to the cart.");
+      return;
     }
   
-    // Update state and localStorage
-    setCart(existingCart);
-    localStorage.setItem("cart", JSON.stringify(existingCart));
+    try {
+      const response = await axios.post("http://localhost:4000/cart", {
+        userId: userId,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.imgurl,
+      });
   
-    alert(`${product.name} added to cart!`);
+      if (response.status === 200) {
+        alert(response.data.message || "Item added to cart!");
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        alert("Missing required fields");
+      } else {
+        console.error("Error adding to cart:", error);
+        alert("Failed to add item to cart. Please try again.");
+      }
+    }
   };
+  
   
   
 
   return (
     <div>
-      <UserNavbar />
+      <UserNavbar cart={cart} />
       <div className="container mx-auto py-16 my-8">
         <h3
           style={{
@@ -114,22 +149,21 @@ const Men = () => {
                 {product.price}
               </p>
               <button
-  style={{
-    marginTop: "16px",
-    backgroundColor: "black",
-    color: "white",
-    padding: "8px 16px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    transition: "background-color 0.3s ease",
-  }}
-  onMouseOver={(e) => (e.target.style.backgroundColor = "#4a4a4a")}
-  onMouseOut={(e) => (e.target.style.backgroundColor = "black")}
-  onClick={() => addToCart(product)} // Add to cart onClick
->
-  Add to Cart
-</button>
-
+                style={{
+                  marginTop: "16px",
+                  backgroundColor: "black",
+                  color: "white",
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  transition: "background-color 0.3s ease",
+                }}
+                onMouseOver={(e) => (e.target.style.backgroundColor = "#4a4a4a")}
+                onMouseOut={(e) => (e.target.style.backgroundColor = "black")}
+                onClick={() => addToCart(product)}
+                >
+                Add to Cart
+              </button>
             </div>
           ))}
         </div>

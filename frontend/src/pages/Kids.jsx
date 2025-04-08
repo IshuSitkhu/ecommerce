@@ -1,116 +1,5 @@
-// // import { useEffect, useState } from "react";
-// // import axios from "axios";
-// // import UserNavbar from "../components/UserNavbar";
-// // import Footer from "../components/Footer";
-// // import React from "react";
 
-// // const Kids = () => {
-// //   const [products, setProducts] = useState([]);
 
-// //   useEffect(() => {
-// //     axios
-// //       .get("http://localhost:4000/products/Kids") // Fetch products for Kids
-// //       .then((response) => {
-// //         setProducts(response.data);
-// //       })
-// //       .catch((error) => {
-// //         console.error("Error fetching products:", error);
-// //       });
-// //   }, []);
-  
-  
-
-// //   return (
-// //     <div>
-// //       <UserNavbar />
-// //       <div className="container mx-auto py-16 my-8">
-// //         <h3 className="text-3xl font-semibold text-center mb-8">Kid's Collection</h3>
-// //         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-// //           {products.map((product) => (
-// //             <div key={product.id} className="bg-white p-4 shadow-lg rounded-lg">
-// //               <img
-// //                 src={`http://localhost:4000${product.imgurl}`} // Ensure correct image path
-// //                 alt={product.name}
-// //                 className="w-full h-64 object-cover rounded-md"
-// //               />
-// //               <h4 className="text-xl font-semibold mt-4">{product.name}</h4>
-// //               <p className="text-gray-600">${product.price}</p>
-// //               <button className="mt-4 bg-black text-white px-4 py-2 rounded hover:bg-gray-700">
-// //                 Add to Cart
-// //               </button>
-// //             </div>
-// //           ))}
-// //         </div>
-// //       </div>
-// //       <Footer />
-// //     </div>
-// //   );
-// // };
-
-// // export default Kids;
-// import { useEffect, useState } from "react";
-// import axios from "axios";
-// import UserNavbar from "../components/UserNavbar";
-// import Footer from "../components/Footer";
-// import React from "react";
-
-// const Kids = () => {
-//   const [products, setProducts] = useState([]);
-//   const [loading, setLoading] = useState(true); // Loading state
-//   const [error, setError] = useState(""); // Error state
-
-//   useEffect(() => {
-//     axios
-//       .get("http://localhost:4000/products/Kids") // Fetch products for Kids
-//       .then((response) => {
-//         setProducts(response.data);
-//         setLoading(false); // Hide loading indicator once data is fetched
-//       })
-//       .catch((error) => {
-//         setError("Error fetching products.");
-//         setLoading(false);
-//         console.error("Error fetching products:", error);
-//       });
-//   }, []);
-
-//   return (
-//     <div>
-//       <UserNavbar />
-//       <div className="container mx-auto py-16 my-8">
-//         <h3 className="text-3xl font-semibold text-center mb-8">Kid's Collection</h3>
-
-//         {/* Loading State */}
-//         {loading && <p>Loading products...</p>}
-
-//         {/* Error State */}
-//         {error && <p style={{ color: "#222" }}>{error}</p>}
-
-//         {/* Products */}
-//         {!loading && !error && (
-//           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-//             {products.map((product) => (
-//               <div key={product.id} className="bg-white p-4 shadow-lg rounded-lg">
-//                 <img
-//                   src={`http://localhost:4000${product.imgurl}`} // Ensure correct image path
-//                   alt={product.name}
-//                   className="w-full h-64 object-cover rounded-md"
-//                 />
-//                 <h4 className="text-xl font-semibold mt-4">{product.name}</h4>
-//                 <p className="text-gray-600">${product.price}</p>
-//                 <button className="mt-4 bg-black text-white px-4 py-2 rounded hover:bg-gray-700">
-//                   Add to Cart
-//                 </button>
-//               </div>
-//             ))}
-//           </div>
-//         )}
-//       </div>
-//       <Footer />
-//     </div>
-//   );
-// };
-
-// export default Kids;
 
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -120,6 +9,8 @@ import React from "react";
 
 const Kids = () => {
   const [products, setProducts] = useState([]);
+    const [cart, setCart] = useState([]); // Added state to hold cart items
+  
 
   useEffect(() => {
     // Fetch products for Women category
@@ -132,6 +23,36 @@ const Kids = () => {
         console.error("Error fetching products:", error);
       });
   }, []);
+
+  const addToCart = async (product) => {
+    const userId = localStorage.getItem("user_id");
+  
+    if (!userId) {
+      alert("Please log in to add items to the cart.");
+      return;
+    }
+  
+    try {
+      const response = await axios.post("http://localhost:4000/cart", {
+        userId: userId,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.imgurl,
+      });
+  
+      if (response.status === 200) {
+        alert(response.data.message || "Item added to cart!");
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        alert("Missing required fields");
+      } else {
+        console.error("Error adding to cart:", error);
+        alert("Failed to add item to cart. Please try again.");
+      }
+    }
+  };
 
   return (
     <div>
@@ -197,6 +118,7 @@ const Kids = () => {
                 }}
                 onMouseOver={(e) => (e.target.style.backgroundColor = "#4a4a4a")}
                 onMouseOut={(e) => (e.target.style.backgroundColor = "black")}
+                onClick={() => addToCart(product)} 
               >
                 Add to Cart
               </button>

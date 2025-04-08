@@ -70,8 +70,15 @@ app.post("/login", (req, res) => {
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) return res.status(401).json({ message: "Invalid c#222entials" });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, "secretkey", { expiresIn: "1h" });
-    res.json({ message: "Login successful", token, role: user.role });
+    const token = jwt.sign({ id: user.id, role: user.role }, "secretkey", { expiresIn: "5min" });
+    res.json({
+      message: "Login successful",
+      token,
+      role: user.role,
+      username: user.username, // ✅ ADD THIS
+      userId: user.id, 
+    });
+    
   });
 });
 
@@ -122,23 +129,167 @@ app.get("/products/:category", (req, res) => {
 });
 
 
-///////
-/// Add the POST Route for Adding Items to Cart
-app.post("/cart", (req, res) => {
-  const { product_id, user_id, quantity } = req.body;
-  
-  if (!product_id || !user_id || !quantity) {
-    return res.status(400).json({ error: "All fields are required" });
-  }
-
-  const query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
-  db.query(query, [user_id, product_id, quantity], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ message: "Added to cart", cart_id: result.insertId });
+app.get("/products", (req, res) => {
+  const query = "SELECT * FROM product";
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("❌ Error fetching all products:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    res.json(results);
   });
 });
 
 
 
+// // // ///////
+// // // /// Add the POST Route for Adding Items to Cart
+// // app.post('/cart', (req, res) => {
+// //   const { userId, productId, name, price, image } = req.body;
+// //   const sql = 'INSERT INTO addtocart (userId, productId, name, price, image) VALUES (?, ?, ?, ?, ?)';
+// //   db.query(sql, [userId, productId, name, price, image], (err, result) => {
+// //     if (err) return res.status(500).send(err);
+// //     res.send({ message: 'Item added to cart' });
+// //   });
+// // });
+
+// app.post('/cart', (req, res) => {
+//   const { userId, productId, name, price, image, quantity = 1 } = req.body; // Set default quantity to 1
+//   const sql = 'INSERT INTO addtocart (userId, productId, name, price, image, quantity) VALUES (?, ?, ?, ?, ?, ?)';
+//   db.query(sql, [userId, productId, name, price, image, quantity], (err, result) => {
+//     if (err) return res.status(500).send(err);
+//     res.send({ message: 'Item added to cart' });
+//   });
+// });
+
+app.post('/cart', (req, res) => {
+  const { userId, productId, name, price, image } = req.body;
+
+  // Check if the product already exists in the cart for this user
+  const checkProductSql = 'SELECT * FROM addtocart WHERE userId = ? AND productId = ?';
+  db.query(checkProductSql, [userId, productId], (err, result) => {
+    if (err) return res.status(500).send(err);
+
+    if (result.length > 0) {
+      // Product already exists in the cart, update the quantity
+      const currentQuantity = result[0].quantity;
+      const newQuantity = currentQuantity + 1; // Increase quantity by 1
+
+      const updateSql = 'UPDATE addtocart SET quantity = ? WHERE userId = ? AND productId = ?';
+      db.query(updateSql, [newQuantity, userId, productId], (err, updateResult) => {
+        if (err) return res.status(500).send(err);
+        res.send({ message: 'Quantity updated in cart' });
+      });
+    } else {
+      // Product does not exist in the cart, insert a new entry
+      const insertSql = 'INSERT INTO addtocart (userId, productId, name, price, image, quantity) VALUES (?, ?, ?, ?, ?, ?)';
+      db.query(insertSql, [userId, productId, name, price, image, 1], (err, insertResult) => {
+        if (err) return res.status(500).send(err);
+        res.send({ message: 'Item added to cart' });
+      });
+    }
+  });
+});
+
+
+
+// app.post('/cart', (req, res) => {
+//   console.log("Received data:", req.body);
+
+//   const { userId, productId, name, price, image } = req.body;
+
+//   // Add validation for missing fields
+//   if (!userId || !productId || !name || !price || !image) {
+//     return res.status(400).send('Missing required fields');
+//   }
+
+//   console.log(`Adding product ${productId} to user ${userId}'s cart`);
+
+//   // Check if the item already exists in the cart
+//   const checkItemSql = 'SELECT * FROM addtocart WHERE userId = ? AND productId = ?';
+//   db.query(checkItemSql, [userId, productId], (err, result) => {
+//     if (err) {
+//       console.error('Database error while checking existing item:', err);
+//       return res.status(500).send('Internal Server Error');
+//     }
+
+//     if (result.length > 0) {
+//       // If item exists, update quantity
+//       const newQuantity = result[0].quantity + 1;
+//       const updateQuantitySql = 'UPDATE addtocart SET quantity = ? WHERE userId = ? AND productId = ?';
+//       db.query(updateQuantitySql, [newQuantity, userId, productId], (err) => {
+//         if (err) {
+//           console.error('Database error while updating quantity:', err);
+//           return res.status(500).send('Internal Server Error');
+//         }
+//         console.log(`Updated quantity of product ${productId} for user ${userId}`);
+//         res.send({ message: 'Item quantity updated in cart' });
+//       });
+//     } else {
+//       // If item doesn't exist, insert new item
+//       const insertSql = 'INSERT INTO addtocart (userId, productId, name, price, image, quantity) VALUES (?, ?, ?, ?, ?, ?)';
+//       db.query(insertSql, [userId, productId, name, price, image, 1], (err) => {
+//         if (err) {
+//           console.error('Database error while inserting new item:', err);
+//           return res.status(500).send('Internal Server Error');
+//         }
+//         console.log(`Added new product ${productId} to user ${userId}'s cart`);
+//         res.send({ message: 'Item added to cart' });
+//       });
+//     }
+//   });
+// });
+
+
+// GET CART ITEMS FOR A USER
+app.get('/cart/:userId', (req, res) => {
+  const userId = req.params.userId;
+  db.query('SELECT * FROM addtocart WHERE userId = ?', [userId], (err, result) => {
+    // if (err) return res.status(500).send(err);
+    // res.send(result);
+    if (err) {
+      console.error("Error fetching user cart:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    res.json(result);
+  });
+});
+
+
+// DELETE an item from the cart
+app.delete('/cart/:userId/:productId', (req, res) => {
+  const { userId, productId } = req.params;
+  const sql = 'DELETE FROM addtocart WHERE userId = ? AND productId = ?';
+  db.query(sql, [userId, productId], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).send('Internal Server Error');
+    }
+    res.send({ message: 'Item removed from cart' });
+  });
+});
+
+// PUT: Update cart item quantity
+// PUT: Update cart item quantity
+app.put('/cart/:userId/:productId', (req, res) => {
+  const { userId, productId } = req.params;
+  const { quantity } = req.body;
+
+  if (quantity <= 0) {
+    return res.status(400).send({ message: 'Invalid quantity' });
+  }
+
+  const sql = 'UPDATE addtocart SET quantity = ? WHERE userId = ? AND productId = ?';
+  db.query(sql, [quantity, userId, productId], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).send('Internal Server Error');
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: 'Item not found in cart' });
+    }
+    res.send({ message: 'Cart updated' });
+  });
+});
 
 

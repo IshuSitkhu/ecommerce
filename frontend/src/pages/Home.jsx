@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Home = () => {
   return <>
-      <h1>Welcome to E-commerces Website</h1>;
+      
       <nav
       style={{
         display: "flex",
@@ -11,9 +11,10 @@ const Home = () => {
         alignItems: "center",
         backgroundColor: "#222",
         padding: "10px 20px",
+       
       }}
     >
-      <h1 style={{ color: "white", fontSize: "24px" }}>My E-commerce</h1>
+      <h1 style={{ color: "white", fontSize: "24px" }}>TrendyWear</h1>
       <div>
         <Link
           to="/login"
@@ -42,6 +43,8 @@ const Home = () => {
         </Link>
       </div>
     </nav>
+    <br/> <br/> <br/> <br/> <br/> <br/> <br/>
+    <h1 style={{ fontSize:"91px",alignItems: "center",}}>Welcome to E-commerces Website</h1>;
   </>
 };
 

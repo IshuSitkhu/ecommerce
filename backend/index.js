@@ -5,6 +5,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
+
+
 require("dotenv").config();
 
 const app = express();
@@ -293,3 +295,49 @@ app.put('/cart/:userId/:productId', (req, res) => {
 });
 
 
+// Route to save the order
+app.post('/orders', async (req, res) => {
+  try {
+    const { userId, totalAmount, paymentMethod, orderItems } = req.body;
+
+    // Make sure all required fields are provided
+    if (!userId || !totalAmount || !paymentMethod || !orderItems) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Insert order into the database
+    const orderQuery = `INSERT INTO orders (userId, totalAmount, paymentMethod, orderStatus) VALUES (?, ?, ?, 'Pending')`;
+    const [orderResult] = await db.execute(orderQuery, [userId, totalAmount, paymentMethod]);
+
+    // Insert order items into the database
+    for (let item of orderItems) {
+      const orderItemQuery = `INSERT INTO order_items (orderId, productId, quantity, price) VALUES (?, ?, ?, ?)`;
+      await db.execute(orderItemQuery, [orderResult.insertId, item.productId, item.quantity, item.price]);
+    }
+
+    // Send success response
+    res.status(200).json({ message: 'Order placed successfully' });
+  } catch (error) {
+    console.error("Error placing order:", error);
+    res.status(500).json({ message: "Failed to place order. Please try again." });
+  }
+});
+
+
+
+
+
+
+// Route to get all orders for admin
+app.get('/orders', (req, res) => {
+  const query = 'SELECT * FROM orders';
+  
+  db.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching orders:', error);
+      return res.status(500).json({ message: 'Error fetching orders' });
+    }
+
+    res.status(200).json(results); // Send the list of orders to the admin
+  });
+});

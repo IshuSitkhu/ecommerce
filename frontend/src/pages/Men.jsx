@@ -164,6 +164,22 @@ const Men = () => {
                 >
                 Add to Cart
               </button>
+              <button
+                style={{
+                  marginTop: "16px",
+                  backgroundColor: "green",
+                  color: "white",
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  transition: "background-color 0.3s ease",
+                }}
+                onMouseOver={(e) => (e.target.style.backgroundColor = "#4a4a4a")}
+                onMouseOut={(e) => (e.target.style.backgroundColor = "green")}
+                onClick={() => buyNow(product)} // Directly place the order
+              >
+                Buy Now
+              </button>
             </div>
           ))}
         </div>

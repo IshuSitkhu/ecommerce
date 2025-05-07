@@ -53,4 +53,13 @@ const AdminNavbar = () => {
   );
 };
 
+
+const linkStyle = {
+  color: "#f1f1f1", // Lighter text color
+  textDecoration: "none",
+  fontSize: "1rem",
+  fontWeight: "600", // Bold font for better visibility
+  transition: "color 0.3s ease",
+};
+
 export default AdminNavbar;
